@@ -13,7 +13,6 @@ app.use("/api/v1/course",courseRouter);
 app.use("/api/v1/admin",adminRouter);
 
 async function main(){
-    //.env
     await mongoose.connect(process.env.URI);
     app.listen(3000);
     console.log("listening on port 3000");
