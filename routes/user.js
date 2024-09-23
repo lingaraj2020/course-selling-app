@@ -5,17 +5,35 @@ const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
 const { JWT_USER_PASSWORD } = require("../config");
 const { userMiddleware } = require("../middlewares/user");
+const zod=require("zod");
+
+const requiredSchema=zod.object({
+    email:zod.string().email(),
+    password:zod.string({
+        required_error:"password must be 8 characters"
+    }).min(8),
+    firstName:zod.string(),
+    lastName:zod.string()
+})
 
 const userRouter=Router();
 
 userRouter.post("/signup",async (req,res)=>{
     try{
-        const {email,password,firstName,lastName}=req.body; //add zod
-        //add bcrypt
-        //put in try catch block
+        const {email,password,firstName,lastName}=req.body; 
+        const parsedbody= requiredSchema.safeParse(req.body)
+        if(!parsedbody){
+            res.json({
+                message:"enter valid content"
+            })
+        }
+        
+        const hashedPassword=bcrypt.hash(password,5);
+        console.log(hashedPassword);
+
         await usermodel.create({
             email:email,
-            password:password,
+            password:hashedPassword,
             firstName:firstName,
             lastName:lastName
         })
@@ -34,7 +52,9 @@ userRouter.post("/signin",async (req,res)=>{
         email:email,
         password:password
     })
-    if(user){
+    const passwordMatch=bcrypt.compare(password,user.password);
+
+    if(user && passwordMatch){
         const token=jwt.sign({
             id:user._id
         },JWT_USER_PASSWORD)

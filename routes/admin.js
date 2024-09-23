@@ -4,11 +4,19 @@ const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
 const { JWT_ADMIN_PASSWORD } = require("../config");
 const { adminMiddleware } = require("../middlewares/admin");
+const zod=require("zod");
 
 const adminRouter=Router();
+const adminParsedData=zod.object({
+    email:zod.string().email(),
+    password:zod.string({
+        required_error:"password must be 8 or more characters"
+    }).min(8),
 
+})
 adminRouter.post("/signup",async(req,res)=>{
     try{
+
         const {email,password,firstName,lastName}=req.body;
 
         await adminmodel.create({
