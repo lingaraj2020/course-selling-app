@@ -9,8 +9,8 @@ const UserSchema=new Schema({
         unique:true
     },
     password:String,
-    firstname:String,
-    lastname:String
+    firstName:String,
+    lastName:String
 })
 
 const adminSchema=new Schema({
@@ -19,8 +19,8 @@ const adminSchema=new Schema({
         unique:true
     },
     password:String,
-    firstname:String,
-    lastname:String
+    firstName:String,
+    lastName:String
 })
 
 const CourseSchema=new Schema({
