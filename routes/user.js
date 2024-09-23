@@ -3,6 +3,7 @@ const {Router} = require("express");
 const { usermodel, coursemodel, purchasemodel } = require("../db");
 const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
+require("dotenv").config();
 const { JWT_USER_PASSWORD } = require("../config");
 const { userMiddleware } = require("../middlewares/user");
 const zod=require("zod");
@@ -28,7 +29,7 @@ userRouter.post("/signup",async (req,res)=>{
             })
         }
         
-        const hashedPassword=bcrypt.hash(password,5);
+        const hashedPassword=await bcrypt.hash(password,5);
         console.log(hashedPassword);
 
         await usermodel.create({
@@ -49,11 +50,9 @@ userRouter.post("/signin",async (req,res)=>{
     const {email,password}=req.body;
 
     const user=await usermodel.findOne({
-        email:email,
-        password:password
+        email:email
     })
     const passwordMatch=bcrypt.compare(password,user.password);
-
     if(user && passwordMatch){
         const token=jwt.sign({
             id:user._id

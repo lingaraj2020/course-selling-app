@@ -2,6 +2,7 @@ const {Router} = require("express");
 const { adminmodel, coursemodel } = require("../db");
 const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
+require("dotenv").config();
 const { JWT_ADMIN_PASSWORD } = require("../config");
 const { adminMiddleware } = require("../middlewares/admin");
 const zod=require("zod");
@@ -12,16 +13,26 @@ const adminParsedData=zod.object({
     password:zod.string({
         required_error:"password must be 8 or more characters"
     }).min(8),
+    firstName:zod.string(),
+    lastName:zod.string()
 
 })
 adminRouter.post("/signup",async(req,res)=>{
     try{
 
         const {email,password,firstName,lastName}=req.body;
+        const parsedsuccess=adminParsedData.safeParse(req.body);
+        if(!parsedsuccess){
+            res.json({
+                message:"enter valid data"
+            })
+        }
+        const Adminpassword=await bcrypt.hash(password,5);
+        console.log(Adminpassword);
 
         await adminmodel.create({
             email:email,
-            password:password,
+            password:Adminpassword,
             firstName:firstName,
             lastName:lastName
         })
@@ -38,10 +49,11 @@ adminRouter.post("/signin",async(req,res)=>{
     const {email,password}=req.body;
 
     const admin=await adminmodel.findOne({
-        email:email,
-        password:password
+        email:email
     })
-    if(admin){
+    const passwordMatch=bcrypt.compare(password,admin.password);
+
+    if(admin && passwordMatch){
         const token=jwt.sign({
             id:admin._id
         },JWT_ADMIN_PASSWORD)
