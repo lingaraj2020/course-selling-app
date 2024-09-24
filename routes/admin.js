@@ -9,24 +9,28 @@ const zod=require("zod");
 
 const adminRouter=Router();
 const adminParsedData=zod.object({
-    email:zod.string().email(),
+    email:zod.string({
+        message:"email is required"
+    }).email({message:"invalid email address"}),
     password:zod.string({
         required_error:"password must be 8 or more characters"
-    }).min(8),
+    }).min(8,{message:"password must have atleast 8 characters"}),
     firstName:zod.string(),
     lastName:zod.string()
 
 })
 adminRouter.post("/signup",async(req,res)=>{
     try{
-
-        const {email,password,firstName,lastName}=req.body;
         const parsedsuccess=adminParsedData.safeParse(req.body);
-        if(!parsedsuccess){
+        
+        if(!parsedsuccess.success){
             res.json({
-                message:"enter valid data"
+                message:"enter valid data",
+                errors:parsedsuccess.error.errors
             })
         }
+        const {email,password,firstName,lastName}=req.body;
+        
         const Adminpassword=await bcrypt.hash(password,5);
         console.log(Adminpassword);
 
@@ -58,8 +62,10 @@ adminRouter.post("/signin",async(req,res)=>{
             id:admin._id
         },JWT_ADMIN_PASSWORD)
 
-        res.json({
-            token:token
+        return res.cookie("access_token",token,{
+            httpOnly:true
+        }).status(200).json({
+            message:"admin logged in successfully 😊"
         })
     }else{
         res.status(411).json({
@@ -88,6 +94,7 @@ adminRouter.post("/course",adminMiddleware,async(req,res)=>{
 
 adminRouter.put("/course",adminMiddleware,async(req,res)=>{
     const adminId=req.adminId;
+    
     const {title,description,price,imageURL,courseId}=req.body;
     const course=await coursemodel.updateOne({
         _id:courseId,

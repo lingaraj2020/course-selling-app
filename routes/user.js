@@ -9,10 +9,12 @@ const { userMiddleware } = require("../middlewares/user");
 const zod=require("zod");
 
 const requiredSchema=zod.object({
-    email:zod.string().email(),
+    email:zod.string({
+        required_error:"email is required"
+    }).email({message:"invalid email address"}),
     password:zod.string({
-        required_error:"password must be 8 characters"
-    }).min(8),
+        required_error:"password is required"})
+        .min(8,{message:"password must atleast 8 characters"}),
     firstName:zod.string(),
     lastName:zod.string()
 })
@@ -21,14 +23,16 @@ const userRouter=Router();
 
 userRouter.post("/signup",async (req,res)=>{
     try{
-        const {email,password,firstName,lastName}=req.body; 
         const parsedbody= requiredSchema.safeParse(req.body)
-        if(!parsedbody){
-            res.json({
-                message:"enter valid content"
+        if(!parsedbody.success){
+            res.status(400).json({
+                message:"enter valid content",
+                errors:parsedbody.error.errors
             })
         }
-        
+
+        const {email,password,firstName,lastName}=req.body; 
+       
         const hashedPassword=await bcrypt.hash(password,5);
         console.log(hashedPassword);
 
@@ -53,13 +57,16 @@ userRouter.post("/signin",async (req,res)=>{
         email:email
     })
     const passwordMatch=bcrypt.compare(password,user.password);
+
     if(user && passwordMatch){
         const token=jwt.sign({
             id:user._id
         },JWT_USER_PASSWORD)
 
-        res.json({
-            token:token
+        return res.cookie("access_token",token,{
+            httpOnly:true
+        }).status(200).json({
+            message:"Logged in successfully 🙏"
         })
     }
     else{
