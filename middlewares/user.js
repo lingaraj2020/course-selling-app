@@ -4,7 +4,7 @@ const { JWT_USER_PASSWORD } = require("../config");
 function userMiddleware(req,res,next){
     const token=req.cookies.access_token;
     if(!token){
-        return res.status(403).send("you dont have cookies to access");
+        return res.status(403).send("invalid cookie");
     }
     try{
     const decoded=jwt.verify(token,JWT_USER_PASSWORD);

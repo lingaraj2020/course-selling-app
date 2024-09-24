@@ -1,9 +1,10 @@
 const jwt=require("jsonwebtoken");
 const { JWT_ADMIN_PASSWORD } = require("../config");
+const { adminRouter } = require("../routes/admin");
 
 function adminMiddleware(req,res,next){
     const token=req.cookies.access_token;
-    if(!token){
+    if(!token){ 
         return res.status(403).send("invalid cookie")
     }
     const decoded=jwt.verify(token,JWT_ADMIN_PASSWORD);

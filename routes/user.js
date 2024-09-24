@@ -1,6 +1,6 @@
 
 const {Router} = require("express");
-const { usermodel, coursemodel, purchasemodel } = require("../db");
+const { usermodel, coursemodel, purchasemodel } = require("../database/db");
 const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
 require("dotenv").config();
@@ -89,6 +89,13 @@ userRouter.get("/purchases",userMiddleware,async(req,res)=>{
         purchases,
         coursesData
     })
+})
+
+userRouter.get("/logout",userMiddleware,(req,res)=>{
+    return res.clearCookie("access_token")
+            .status(200).json({
+                message:"Successfully logged out 🫡"
+            })
 })
 
 module.exports={

@@ -1,5 +1,5 @@
 const {Router} = require("express");
-const { adminmodel, coursemodel } = require("../db");
+const { adminmodel, coursemodel } = require("../database/db");
 const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
 require("dotenv").config();
@@ -94,7 +94,7 @@ adminRouter.post("/course",adminMiddleware,async(req,res)=>{
 
 adminRouter.put("/course",adminMiddleware,async(req,res)=>{
     const adminId=req.adminId;
-    
+
     const {title,description,price,imageURL,courseId}=req.body;
     const course=await coursemodel.updateOne({
         _id:courseId,
@@ -122,6 +122,13 @@ adminRouter.get("/course/bulk",adminMiddleware,async(req,res)=>{
     res.json({
         courses
     })
+})
+
+adminRouter.get("/logout",adminMiddleware,(req,res)=>{
+    return res.clearCookie("access_token")
+            .status(200).json({
+                message:"Successfully logged out 🫡"
+            })
 })
 
 module.exports={
